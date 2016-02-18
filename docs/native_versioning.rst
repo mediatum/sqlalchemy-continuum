@@ -17,6 +17,12 @@ For enabling native versioning you need to set `native_versioning` configuration
 
     make_versioned(options={'native_versioning': True})
 
+Native versioning for PostgreSQL needs the `hstore` extension.
+If the extension was created in a schema that can't be found in the search path, you can configure the schema with the `extension_schema` configuration option:
+
+::
+
+    make_versioned(options={'native_versioning': True, 'extension_schema': 'extensions'})
 
 
 Schema migrations

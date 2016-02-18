@@ -63,8 +63,9 @@ BEGIN
         {after_insert}
         {upsert_insert}
     ELSIF (TG_OP = 'UPDATE') THEN
-        IF (hstore(NEW.*) - hstore(OLD.*) - ARRAY[{excluded_columns}]::text[])
-            = hstore('')
+        IF ({extension_prefix}hstore(NEW.*) OPERATOR({extension_prefix}-) {extension_prefix}hstore(OLD.*)
+            OPERATOR({extension_prefix}-) ARRAY[{excluded_columns}]::text[])
+            OPERATOR({extension_prefix}=) {extension_prefix}hstore('')
         THEN
             RETURN NULL;
         END IF;
@@ -110,6 +111,7 @@ class SQLConstruct(object):
         update_validity_for_tables=None,
         use_property_mod_tracking=False,
         end_transaction_column_name=None,
+        extension_schema=None
     ):
         self.update_validity_for_tables = update_validity_for_tables
         self.operation_type_column_name = operation_type_column_name
@@ -119,6 +121,7 @@ class SQLConstruct(object):
         self.use_property_mod_tracking = use_property_mod_tracking
         self.table = table
         self.excluded_columns = excluded_columns
+        self.extension_schema = extension_schema
         if update_validity_for_tables is None:
             self.update_validity_for_tables = []
         if self.excluded_columns is None:
@@ -176,7 +179,8 @@ class SQLConstruct(object):
             ),
             use_property_mod_tracking=uses_property_mod_tracking(manager),
             excluded_columns=excluded_columns,
-            table=cls.__table__
+            table=cls.__table__,
+            extension_schema=manager.option(cls, 'extension_schema')
         )
 
     @property
@@ -413,7 +417,8 @@ class CreateTriggerFunctionSQL(SQLConstruct):
             ),
             upsert_insert=InsertUpsertSQL(**args),
             upsert_update=UpdateUpsertSQL(**args),
-            upsert_delete=DeleteUpsertSQL(**args)
+            upsert_delete=DeleteUpsertSQL(**args),
+            extension_prefix=self.extension_schema + "." if self.extension_schema else ""
         )
         return sql
 

@@ -5,13 +5,16 @@ import sqlalchemy as sa
 
 from sqlalchemy_continuum.dialects.postgresql import (
     drop_trigger,
-    sync_trigger
+    sync_trigger,
+    CreateTriggerFunctionSQL
 )
 from tests import (
     get_dns_from_driver,
     get_driver_name,
     QueryPool,
-    uses_native_versioning
+    uses_native_versioning,
+    versioning_manager,
+    TestCase
 )
 
 
@@ -59,3 +62,17 @@ class TestTriggerSyncing(object):
             in QueryPool.queries[-2]
         )
         assert 'DROP FUNCTION ' in QueryPool.queries[-1]
+
+
+@pytest.mark.skipif('not uses_native_versioning()')
+class TestTrigger(TestCase):
+    def test_trigger_func_default_extension_schema(self):
+        trigger_func = str(CreateTriggerFunctionSQL.for_manager(versioning_manager, self.Article))
+        assert "OPERATOR(-)" in trigger_func
+
+    def test_trigger_func_non_default_extension_schema(self):
+        versioning_manager.options["extension_schema"] = "extension"
+        trigger_func = str(CreateTriggerFunctionSQL.for_manager(versioning_manager, self.Article))
+        assert "OPERATOR(extension.-)" in trigger_func
+        assert "OPERATOR(extension.=)" in trigger_func
+        assert trigger_func.count("extension.hstore(") == 3
