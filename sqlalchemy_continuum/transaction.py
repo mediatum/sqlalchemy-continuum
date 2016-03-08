@@ -120,8 +120,8 @@ class TransactionFactory(ModelFactory):
             __versioning_manager__ = manager
 
             id = sa.Column(
-                sa.types.BigInteger,
-                sa.schema.Sequence('transaction_id_seq'),
+                sa.types.Integer,
+                sa.schema.Sequence('transaction_id_seq', schema="mediatum", optional=True),
                 primary_key=True,
                 autoincrement=True
             )
