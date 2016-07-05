@@ -53,6 +53,21 @@ class TestValidityStrategy(TestCase):
             article.versions[-1].transaction_id
         )
 
+    def test_end_transaction_id_for_multiple_updates_within_same_transaction(self):
+        article = self.Article()
+        article.name = u'Some article'
+        article.content = u'Some content'
+        self.session.add(article)
+        self.session.commit()
+        article.content = u'Updated content'
+        self.session.flush()
+        article.content = u'Updated content 2'
+        self.session.commit()
+        article.content = u'Updated content 3'
+        self.session.commit()
+        assert article.versions[-1].end_transaction_id is None
+        assert article.versions[-1].next is None
+
 
 class TestJoinTableInheritanceWithValidityVersioning(TestCase):
     def create_models(self):

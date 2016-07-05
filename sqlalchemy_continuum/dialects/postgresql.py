@@ -87,7 +87,9 @@ SET {end_transaction_column} = transaction_id_value
 WHERE
     {transaction_column} = (
         SELECT MIN({transaction_column}) FROM {version_table_name}
-        WHERE {end_transaction_column} IS NULL AND {primary_key_criteria}
+        WHERE {end_transaction_column} IS NULL
+        AND {transaction_column} != transaction_id_value 
+        AND {primary_key_criteria}
     ) AND
     {primary_key_criteria};
 """

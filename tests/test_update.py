@@ -73,9 +73,22 @@ class TestUpdate(TestCase):
         self.session.commit()
         assert article.versions.count() == 2
         version = article.versions.all()[-1]
+        assert version.next is None
         assert version.name == u'Some article'
         assert version.content == u'Updated content 2'
 
+    def test_end_transaction_id_for_multiple_updates_within_same_transaction(self):
+        article = self.Article()
+        article.name = u'Some article'
+        article.content = u'Some content'
+        self.session.add(article)
+        self.session.commit()
+        article.content = u'Updated content'
+        self.session.flush()
+        article.content = u'Updated content 2'
+        self.session.commit()
+        assert article.versions[-1].end_transaction_id is None
+        assert article.versions[-1].next is None
 
 class TestUpdateWithDefaultValues(TestCase):
     def create_models(self):

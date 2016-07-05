@@ -71,8 +71,10 @@ class TestTrigger(TestCase):
         assert "OPERATOR(-)" in trigger_func
 
     def test_trigger_func_non_default_extension_schema(self):
+        default_extension_schema = versioning_manager.options["extension_schema"]
         versioning_manager.options["extension_schema"] = "extension"
         trigger_func = str(CreateTriggerFunctionSQL.for_manager(versioning_manager, self.Article))
         assert "OPERATOR(extension.-)" in trigger_func
         assert "OPERATOR(extension.=)" in trigger_func
         assert trigger_func.count("extension.hstore(") == 3
+        versioning_manager.options["extension_schema"] = default_extension_schema
