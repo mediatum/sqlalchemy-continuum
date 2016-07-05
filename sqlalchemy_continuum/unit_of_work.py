@@ -284,6 +284,12 @@ class UnitOfWork(object):
 
         :param session: SQLAlchemy session object
         """
+        if (
+            not self.manager.options['versioning'] or
+            self.manager.options['native_versioning']
+        ):
+            return
+        
         statements = copy(self.pending_statements)
         for stmt in statements:
             stmt = stmt.values(
