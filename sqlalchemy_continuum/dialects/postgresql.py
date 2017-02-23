@@ -496,7 +496,7 @@ def sync_trigger(conn, table_name):
         set(c.name for c in version_table.c if not c.name.endswith('_mod'))
     )
     drop_trigger(conn, parent_table.name)
-    create_trigger(conn, table=parent_table, excluded_columns=excluded_columns)
+    create_trigger(conn, table=parent_table, excluded_columns=excluded_columns, use_property_mod_tracking=False)
 
 
 def create_trigger(
